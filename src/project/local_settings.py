@@ -32,10 +32,20 @@ read_env()
 DEBUG = (os.environ.get('DEBUG', True) in ["True", "true", True])
 SHOW_DEBUG_TOOLBAR = False
 
+#ADMINS = (
+#    ('Civitate API Admin', os.environ.get('SHAREABOUTS_ADMIN_EMAIL', 'civitate@geocrafter.eu')),
+#)
+#
+#MANAGERS = ADMINS
+
+TIME_ZONE = os.environ.get('TIME_ZONE', 'Portugal')
+
+LANGUAGE_CODE = os.environ.get('LANGUAGE', 'en-us')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'shareabouts_v2',
+        'NAME': os.environ.get('NAME', 'shareabouts_v2'),
         'USER': os.environ.get('USERNAME', 'postgres'),
         'PASSWORD': os.environ.get('PASS', 'postgres'),
         'HOST': os.environ.get('HOST', 'localhost'),
@@ -156,11 +166,10 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
-
-        'sa_api': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
+        'sa_api_v2': {
+            'handlers': ['console', 'sentry'],
+            'level': 'INFO',
             'propagate': True,
-            },
         }
+    }
 }
