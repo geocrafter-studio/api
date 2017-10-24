@@ -1,0 +1,57 @@
+###########################################################
+# Dockerfile to build Python WSGI Application Containers
+############################################################
+
+# Set the base image to Alpine
+FROM python:2.7-alpine
+
+# File Author / Maintainer
+MAINTAINER Fernando Ribeiro <fernando.ribeiro@geocrafter.eu>
+
+# Install basic applications
+RUN apk add --no-cache --update \
+    gcc \
+    git \
+    curl \
+    bash \
+    postgresql-dev \
+    libjpeg-turbo-dev \
+    musl-dev \
+    zlib-dev
+
+# Add packages from testing repo
+RUN apk add \
+    geos-dev \
+    py-geos \
+    --no-cache --repository http://dl-4.alpinelinux.org/alpine/edge/testing/
+
+# If you want to deploy from an online host git repository, you can use the following command to clone:
+# RUN git clone https://github.com/mapseed/api.git && cd api && git checkout 0.6.8 && cd -
+# # for local testing, cd into project root and uncomment this line:
+ADD . api
+
+# Get pip to download and install requirements:
+#RUN pip install -r /api/requirements.txt
+RUN LIBRARY_PATH=/lib:/usr/lib /bin/sh -c "pip install -r /api/requirements.txt --cache-dir .pip-cache && rm -rf .pip-cache"
+
+# Set the default directory where CMD will execute
+WORKDIR /api
+
+# Fix this: https://stackoverflow.com/questions/18643998/geodjango-geosexception-error
+RUN mkdir static \
+    && sed -i.bak "s/geos_version().decode()/geos_version().decode().split(\' \')[0]/g" /usr/local/lib/python2.7/site-packages/django/contrib/gis/geos/libgeos.py \
+    && rm -rf ~/.cache/pip/* \
+    && rm -rf /var/cache/apk/*
+
+VOLUME /api/static
+
+# Expose ports
+EXPOSE 8010
+
+# Set the default command to execute
+# when creating a new container
+# ex:
+# CMD python server.py
+# or:
+# CMD sh -c "python src/manage.py collectstatic --noinput && gunicorn wsgi:application -w 3 -b 0.0.0.0:8010"
+CMD /api/start.sh
