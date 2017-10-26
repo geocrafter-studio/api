@@ -1,6 +1,8 @@
 #!/bin/bash
 
-python src/manage.py syncdb
+export $(cat src/.env | xargs)
+python src/manage.py migrate
 python src/manage.py collectstatic --noinput
-gunicorn wsgi:application -w 3 -b 0.0.0.0:8010 --log-level=debug
+cd src
+gunicorn project.wsgi -w 4 -b 0.0.0.0:8010 --log-level=info
 
